@@ -67,7 +67,7 @@ const CreatePage = () => {
                                     <Input {...field} disabled={isSubmitting} placeholder="e.g. 'Advanced web development' " />
                                 </FormControl>
                                 <FormDescription>
-                                    Give your course a name that reflects what it's about.
+                                    Give your course a name that reflects what its about.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
