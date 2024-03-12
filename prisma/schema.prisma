@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch","fullTextIndex"]
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+
+
+model Course {
+  id String @id @default(uuid())
+  userId String
+  title String @db.Text
+  description String? @db.Text
+  imageUrl String? @db.Text
+  price Float?
+  isPublished Boolean @default(false)
+  categoryId String?
+  category Category? @relation(fields: [categoryId], references: [id])
+  attachments Attachment[]
+  chapters Chapter[]
+  purchases Purchase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@fulltext([title]) // this is for 
+}
+
+model Attachment {
+  id String @id @default(uuid())
+  name String
+  url String @db.Text
+  courseId String
+  course Course @relation(fields: [courseId], references: [id],onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model Category {
+    id String @id @default(uuid())
+    name String @unique
+    courses Course[] // one to many relation
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Chapter {
+  id String @id @default(uuid())
+  title String
+  description String? @db.Text // ? indica que este campo es opcional, db.Text indica que este campo debe ser mapeado a un tipo de datos de texto en la base de datos
+  videoUrl String? @db.Text
+  position Int
+  isPublished Boolean @default(false)
+  isFree Boolean @default(false)
+  muxData MuxData? // one to one relation
+  courseId String
+  course Course @relation(fields: [courseId], references: [id],onDelete: Cascade)
+  userProgress UserProgress[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId]) // Crear un índice en la base de datos para el campo courseId
+}
+
+model MuxData {
+  id String @id @default(uuid())
+  playbackId String?
+  assetId String
+
+  chapterId String @unique
+  chapter Chapter @relation(fields: [chapterId], references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chapterId])
+}
+
+model UserProgress {
+  id String @id @default(uuid())
+  isCompleted Boolean @default(false)
+
+  chapterId String
+  chapter Chapter @relation(fields: [chapterId], references: [id])
+
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chapterId])
+  @@unique([chapterId, userId]) // Crear un índice único en la base de datos para los campos chapterId y userId,es solo para que un usuario no pueda tener el mismo progreso en el mismo capítulo dos veces
+}
+
+model Purchase {
+  id String @id @default(uuid())
+  courseId String
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, userId]) // Crear un índice único en la base de datos para los campos courseId y userId,es solo para que un usuario no pueda comprar el mismo curso dos veces
+  @@index([courseId]) // esto es para crear un índice en la base de datos para el campo courseId 
+}
+
+model StripeCustomer {
+  id String @id @default(uuid())
+  stripeCustomerId String @unique
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// @db.Text indica que este campo debe ser mapeado a un tipo de datos de texto en la base de datos
+// . Esto puede ser útil si se espera que el título sea largo y se desea un tipo de datos de texto en la base de datos para manejar texto extenso de manera eficiente.
