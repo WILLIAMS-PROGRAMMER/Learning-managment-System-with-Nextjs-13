@@ -49,7 +49,7 @@ export const AttachmentForm = ({initialData, courseId}:AttachmentFormProps) => {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     useEffect(() => {
        setYes(true);
-    });
+    },[]);
 
     const toggleEdit = () => setIsEditing(!isEditing);
     const router = useRouter();
